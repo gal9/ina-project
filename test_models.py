@@ -31,6 +31,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn import svm
 
 from src.feature_vectors import create_feature_vector
+from src import adapter
 
 def get_ply_files(folder):
     files = list(filter(lambda file: file.split('.')[-1]=='ply', os.listdir(folder)))
@@ -38,17 +39,17 @@ def get_ply_files(folder):
     return files
 
 def label_groups(files, k):
-    group_sizes = [len([f for f in os.listdir('../data/'+file) if f[-3:]=='ply']) for file in files]
+    group_sizes = [len([f for f in os.listdir('data/'+file) if f[-3:]=='ply']) for file in files]
     group_sizes = [sum(group_sizes[:k]), group_sizes[k], sum(group_sizes[k+1:])]
     labels = np.zeros(sum(group_sizes))
     labels[group_sizes[0]:group_sizes[0]+group_sizes[1]] = 1
     return labels
 
 def get_data(k):
-    ply_files  = get_ply_files('../data/tablesPly')
-    ply_files += get_ply_files('../data/chairsPly')
-    ply_files += get_ply_files('../data/octopusPly')
-    ply_files += get_ply_files('../data/spidersPly')
+    ply_files  = get_ply_files('data/tablesPly')
+    ply_files += get_ply_files('data/chairsPly')
+    ply_files += get_ply_files('data/octopusPly')
+    ply_files += get_ply_files('data/spidersPly')
 
     files = ['tablesPly','chairsPly', 'octopusPly', 'spidersPly']
     labels = label_groups(files, k)
@@ -125,11 +126,12 @@ def feature_vectors(pcd, pipe):
     feature_vectors = []
     start = time.time()
     for i, pc in enumerate(pcd):
-        print('\r', f"{int((i/len(pcd))*100)}%", end="\n")
+        print('\r', f"{int((i/len(pcd))*100)}%", end="")
         e_fv, fv = create_feature_vector(pc, pipe, persistence)
         entropy_feature_vectors.append(e_fv)
         feature_vectors.append(fv)
     end = time.time()
+    print()
     
     return feature_vectors, entropy_feature_vectors
 
@@ -187,7 +189,6 @@ def accuracy_scores(feature_vectors, entropy_feature_vectors, labels):
     
 
 def model_accuracy(k, filter_func='Projection', cover='CubicalCover4-0.1', clusterer='DBSCAN10'):
-    print("Start computing model accuracy...")
     print("- processing data")
     pcd, labels, majority_classifier = get_data(k)
     pipe = mapper_pipeline(filter_func, cover, clusterer)
@@ -214,19 +215,3 @@ def visualize_scores(best_scores, majority_classifier):
     sn.heatmap(df_cm, annot=True, annot_kws={"size": 16}) # font size
     plt.show()
     return
-
-data = []
-for k in [1]:
-    for ff in ['Projection', 'PCA']:
-        for co in ['CubicalCover4-0.1', 'CubicalCover3-0.2']:
-            for cl in ['DBSCAN10']:
-                scores, scores_wo_homology, majority_classifier = model_accuracy(k, filter_func=ff, cover=co, clusterer=cl)
-                res_w_homology = [x[:2] for x in scores[:3]]
-                res_wo_homology = [x[:2] for x in scores_wo_homology[:3]]
-                data.append([k, ff, co, cl, res_w_homology[0], res_wo_homology[0], majority_classifier])
-                print(k, ff, co, cl)
-                print(res_w_homology[:3], res_wo_homology[0], majority_classifier)
-
-table = pd.DataFrame(data, range(len(data)), ["items", "filter function", "cover", "clusterer", "accuracy scores w homology", "accuracy score wo homology", "majority classifier"])
-print(table)
-dfi.export(table,"mytable.png")

@@ -2,7 +2,7 @@ import networkx as nx
 import numpy as np
 
 from typing import List, Any, Tuple
-from adapter import mapper_to_networkx 
+from src.adapter import mapper_to_networkx 
 from gtda.mapper import plot_static_mapper_graph
 from gtda.diagrams import Amplitude, PersistenceEntropy
 
