@@ -1,4 +1,5 @@
 import networkx as nx
+import networkx.algorithms.community as nx_comm
 import numpy as np
 
 from typing import List, Any, Tuple
@@ -136,10 +137,13 @@ def create_feature_vector(point_cloud, pipe, persistence) -> Tuple[List[float], 
     # 8 MAX CLOSENESS CENTRALITY
     feature_vector.append(get_max_closeness_centrality(networkx_graph))
 
-    # 9 MAX EIGENVECTOR CENTRALITY
+    # 9 MAX EIGENVECTOR CENTRALITY -> DOES NOT CONVERGE
     # feature_vector.append(get_max_eigenvector_centrality(networkx_graph))
 
     # 9 MAX BETWEENNESS CENTRALITY
     feature_vector.append(get_max_betweenness_centrality(networkx_graph))
+
+    # 10 NUMBER OF LOUVAIN COMMUNITIES
+    feature_vector.append(len(nx_comm.louvain_communities(networkx_graph)))
 
     return entropy_feature_vector, feature_vector
