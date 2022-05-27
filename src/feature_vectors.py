@@ -46,7 +46,7 @@ def create_feature_vector(point_cloud, pipe, persistence) -> Tuple[List[float], 
 
     feature_vector = []
 
-    # ARTICULATION POINTS
+    # NUMBER OF ARTICULATION POINTS
     feature_vector.append(len(list(nx.articulation_points(networkx_graph))))
 
     # AVERAGE DEGREE
