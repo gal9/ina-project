@@ -15,10 +15,10 @@ def get_degree_mixing(G):
     # iterate over all edges
     for i, j in G.edges():
         # add degrees of i's and j's nodes to x and y: x<-[deg_i,deg_j], y<-[deg_j,deg_i]
-       x.append(G.degree(i))
-       y.append(G.degree(j))
-       x.append(G.degree(j))
-       y.append(G.degree(i))
+        x.append(G.degree(i))
+        y.append(G.degree(j))
+        x.append(G.degree(j))
+        y.append(G.degree(i))
     return stats.pearsonr(x, y)[0]
 
 
@@ -31,6 +31,29 @@ def find_cliques_size_k(G, k):
             for mini_clique in itertools.combinations(clique, k):
                 all_cliques.add(tuple(sorted(mini_clique)))
     return len(all_cliques)
+
+
+def get_number_of_leaves(G):
+    count = 0
+    for (node, val) in G.degree():
+        if val == 1:
+            count += 1
+    return count
+
+
+def get_max_closeness_centrality(G):
+    centrality_nodes = list(nx.closeness_centrality(G).values())
+    return max(centrality_nodes)
+
+
+def get_max_eigenvector_centrality(G):
+    centrality_nodes = list(nx.eigenvector_centrality(G).values())
+    return max(centrality_nodes)
+
+
+def get_max_betweenness_centrality(G):
+    centrality_nodes = list(nx.betweenness_centrality(G).values())
+    return max(centrality_nodes)
 
 
 def create_feature_vector(point_cloud, pipe, persistence) -> Tuple[List[float], List[float]]:
@@ -106,5 +129,17 @@ def create_feature_vector(point_cloud, pipe, persistence) -> Tuple[List[float], 
 
     # 6 ASSORTATIVITY COEFFICIENT
     feature_vector.append(nx.degree_assortativity_coefficient(networkx_graph))
+
+    # 7 NUMBER OF LEAVES NORMALIZED
+    feature_vector.append(float(get_number_of_leaves(networkx_graph)) / n)
+
+    # 8 MAX CLOSENESS CENTRALITY
+    feature_vector.append(get_max_closeness_centrality(networkx_graph))
+
+    # 9 MAX EIGENVECTOR CENTRALITY
+    # feature_vector.append(get_max_eigenvector_centrality(networkx_graph))
+
+    # 9 MAX BETWEENNESS CENTRALITY
+    feature_vector.append(get_max_betweenness_centrality(networkx_graph))
 
     return entropy_feature_vector, feature_vector
