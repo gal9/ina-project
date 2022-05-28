@@ -57,6 +57,36 @@ def get_max_betweenness_centrality(G):
     return max(centrality_nodes)
 
 
+def get_90th_perc_closeness_centrality(G):
+    ecentrality_nodes = list(nx.closeness_centrality(G).values())
+    max_element = max(ecentrality_nodes)
+    count_top_ecentrality = 0
+    for i in ecentrality_nodes:
+        if max_element * 0.9 <= i:
+            count_top_ecentrality += 1
+    return count_top_ecentrality
+
+
+def get_90th_perc_betweenness_centrality(G):
+    ecentrality_nodes = list(nx.betweenness_centrality(G).values())
+    max_element = max(ecentrality_nodes)
+    count_top_ecentrality = 0
+    for i in ecentrality_nodes:
+        if max_element * 0.9 <= i:
+            count_top_ecentrality += 1
+    return count_top_ecentrality
+
+
+def get_avg_closeness_centrality(G):
+    ecentrality_nodes = list(nx.closeness_centrality(G).values())
+    return sum(ecentrality_nodes)/len(ecentrality_nodes)
+
+
+def get_avg_betweenness_centrality(G):
+    ecentrality_nodes = list(nx.betweenness_centrality(G).values())
+    return sum(ecentrality_nodes)/len(ecentrality_nodes)
+
+
 def create_feature_vector(point_cloud, pipe, persistence) -> Tuple[List[float], List[float]]:
     """
     A function that generates entropy feature vectors as well as network-based
@@ -95,13 +125,6 @@ def create_feature_vector(point_cloud, pipe, persistence) -> Tuple[List[float], 
     n = networkx_graph.number_of_nodes()
     m = networkx_graph.number_of_edges()
 
-    ecentrality_nodes = list(nx.closeness_centrality(networkx_graph).values())
-    max_element = max(ecentrality_nodes)
-    count_top_ecentrality = 0
-    for i in ecentrality_nodes:
-        if max_element * 0.9 <= i:
-            count_top_ecentrality += 1
-
     feature_vector = []
 
     # 0 NUMBER OF ARTICULATION POINTS
@@ -116,34 +139,34 @@ def create_feature_vector(point_cloud, pipe, persistence) -> Tuple[List[float], 
     # 3 AVG. NETWORK CLUSTERING
     feature_vector.append(nx.average_clustering(networkx_graph))
 
-    # DIAMETER NORMALIZED WITH NUMBER OF NODES -> PROBLEM WITH DISCONNECTED GRAPH
-    # feature_vector.append(float(nx.diameter(networkx_graph)) / n)
+    # 4 NUMBER OF NODES IN TOP 10% CLOSENESS CENTRALITY NORMALIZED
+    feature_vector.append(float(get_90th_perc_closeness_centrality(networkx_graph)) / n)
 
-    # 4 NUMBER OF NODES IN TOP 10% CENTRALITY NORMALIZED
-    feature_vector.append(float(count_top_ecentrality) / n)
+    # 5 NUMBER OF NODES IN TOP 10% BETWEENNESS CENTRALITY NORMALIZED
+    feature_vector.append(float(get_90th_perc_betweenness_centrality(networkx_graph)) / n)
 
-    # 5 NUMBER OF CLIQUES OF 4 NORMALIZED
+    # 6 NUMBER OF CLIQUES OF 4 NORMALIZED
     feature_vector.append(float(find_cliques_size_k(networkx_graph, 4)) / n)
 
-    # 6 DEGREE MIXING COEFFICIENT - SAME AS ASSORTATIVITY COEFFICIENT
-    # feature_vector.append(get_degree_mixing(networkx_graph))
-
-    # 6 ASSORTATIVITY COEFFICIENT
+    # 7 ASSORTATIVITY COEFFICIENT
     feature_vector.append(nx.degree_assortativity_coefficient(networkx_graph))
 
-    # 7 NUMBER OF LEAVES NORMALIZED
+    # 8 NUMBER OF LEAVES NORMALIZED
     feature_vector.append(float(get_number_of_leaves(networkx_graph)) / n)
 
-    # 8 MAX CLOSENESS CENTRALITY
+    # 9 MAX CLOSENESS CENTRALITY
     feature_vector.append(get_max_closeness_centrality(networkx_graph))
 
-    # 9 MAX EIGENVECTOR CENTRALITY -> DOES NOT CONVERGE
-    # feature_vector.append(get_max_eigenvector_centrality(networkx_graph))
-
-    # 9 MAX BETWEENNESS CENTRALITY
+    # 10 MAX BETWEENNESS CENTRALITY
     feature_vector.append(get_max_betweenness_centrality(networkx_graph))
 
-    # 10 NUMBER OF LOUVAIN COMMUNITIES
+    # 11 AVERAGE CLOSENESS CENTRALITY
+    feature_vector.append(get_avg_closeness_centrality(networkx_graph))
+
+    # 12 AVERAGE BETWEENNESS CENTRALITY
+    feature_vector.append(get_avg_betweenness_centrality(networkx_graph))
+
+    # 13 NUMBER OF LOUVAIN COMMUNITIES
     feature_vector.append(len(nx_comm.louvain_communities(networkx_graph)))
 
     return entropy_feature_vector, feature_vector
