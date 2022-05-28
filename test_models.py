@@ -201,13 +201,13 @@ def model_accuracy(k, filter_func='Projection', cover='CubicalCover4-0.1', clust
 
 def visualize_scores(best_scores, majority_classifier):
     data = [(score, comb, mapper) for (score, comb, cm), mapper in best_scores if score >= majority_classifier]
-    mapper_settings = set([x[2] for x in data])
-    colors = {x: (0., 0., 1-0.1*i) for i, x in enumerate(mapper_settings)}
+    mapper_settings, col = set([x[2][1:] for x in data]), [(0., 0., 1), (0.3, 0., 0.7), (0.4, 0., 0.6), (0.5, 0., 0.5)]
+    colors = {x: col[i] for i, x in enumerate(mapper_settings)}
     legend_elements = [Patch(facecolor=c, label=s) for s, c in colors.items()]
     
-    fig = plt.figure(figsize = (20, 5))
+    fig = plt.figure(figsize = (12, 5))
     for x in data:
-        plt.bar(x[1], x[0], color = colors[x[2]], width = 0.4)
+        plt.bar(x[1], x[0], color = colors[x[2][1:]], width = 0.4)
     plt.bar("baseline", majority_classifier, color ='red', width = 0.4)
     plt.ylim(0.5, 1)
     plt.xticks(rotation = 45)
@@ -215,8 +215,8 @@ def visualize_scores(best_scores, majority_classifier):
     plt.ylabel("Accuracy")
     plt.title("Method accuracy using different combinations of parameters")
     plt.legend(handles=legend_elements, loc='upper right', title="Mapper settings")
+    plt.savefig('results/barplots/best_results.png')
     plt.show()
-    
 
 
 def show_confusion_matrix(cm):
