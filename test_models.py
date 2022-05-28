@@ -10,6 +10,7 @@ from gtda.plotting import plot_diagram
 import matplotlib.pyplot as plt
 import seaborn as sn
 import dataframe_image as dfi
+from matplotlib.patches import Patch
 
 from gtda.homology import VietorisRipsPersistence
 from gtda.mapper import (
@@ -137,7 +138,6 @@ def feature_vectors(pcd, pipe):
 
 def accuracy_scores(feature_vectors, entropy_feature_vectors, labels):
     num_features = len(feature_vectors[0])
-    clf = svm.SVC(kernel='linear', C=1, random_state=42)
     best_scores = []
 
     for homology_idx in range(3):
@@ -146,11 +146,12 @@ def accuracy_scores(feature_vectors, entropy_feature_vectors, labels):
         for entropy_fv in entropy_feature_vectors:
             final_fvs.append(entropy_fv[homology_idx])
 
+        clf = svm.SVC(kernel='linear', C=1, random_state=42)
         scores = cross_val_score(clf, final_fvs, labels, cv=10)
         y_pred = cross_val_predict(clf, final_fvs, labels, cv=10)
         conf_mat = confusion_matrix(labels, y_pred)
         best_scores.append((scores.mean(), "h"+str(homology_idx+1), conf_mat))
-
+        
         for number_of_additional_features in range(1,4):
             combinations = list(itertools.combinations(range(num_features), number_of_additional_features))
 
@@ -181,7 +182,7 @@ def accuracy_scores(feature_vectors, entropy_feature_vectors, labels):
             scores = cross_val_score(clf, final_fvs, labels, cv=10)
             y_pred = cross_val_predict(clf, final_fvs, labels, cv=10)
             conf_mat = confusion_matrix(labels, y_pred)
-            best_scores_2.append((scores.mean(), str(combination), conf_mat))
+            best_scores_2.append((scores.mean(), ''.join([str(x)+" " for x in combination]), conf_mat))
 
 
     best_scores_2.sort(reverse=True)
@@ -199,19 +200,27 @@ def model_accuracy(k, filter_func='Projection', cover='CubicalCover4-0.1', clust
     return scores, scores_wo_homology, majority_classifier
 
 def visualize_scores(best_scores, majority_classifier):
-    data = [(score, comb) for score, comb, cm in best_scores if score >= majority_classifier]
+    data = [(score, comb, mapper) for (score, comb, cm), mapper in best_scores if score >= majority_classifier]
+    mapper_settings = set([x[2] for x in data])
+    colors = {x: (0., 0., 1-0.1*i) for i, x in enumerate(mapper_settings)}
+    legend_elements = [Patch(facecolor=c, label=s) for s, c in colors.items()]
+    
     fig = plt.figure(figsize = (20, 5))
-    plt.bar([x[1] for x in data], [x[0] for x in data], color ='blue', width = 0.4)
+    for x in data:
+        plt.bar(x[1], x[0], color = colors[x[2]], width = 0.4)
     plt.bar("baseline", majority_classifier, color ='red', width = 0.4)
-    plt.ylim(0.5, best_scores[0][0] + 0.05)
+    plt.ylim(0.5, 1)
     plt.xticks(rotation = 45)
     plt.xlabel("Feature vectors")
     plt.ylabel("Accuracy")
     plt.title("Method accuracy using different combinations of parameters")
+    plt.legend(handles=legend_elements, loc='upper right', title="Mapper settings")
     plt.show()
     
-    df_cm = pd.DataFrame(best_scores[0][2], index = ['True','False'], columns = ['True','False'])
+
+
+def show_confusion_matrix(cm):
+    df_cm = pd.DataFrame(cm, index = ['True','False'], columns = ['True','False'])
     sn.set(font_scale=1.4) # for label size
     sn.heatmap(df_cm, annot=True, annot_kws={"size": 16}) # font size
     plt.show()
-    return

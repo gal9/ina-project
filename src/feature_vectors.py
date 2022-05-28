@@ -167,6 +167,6 @@ def create_feature_vector(point_cloud, pipe, persistence) -> Tuple[List[float], 
     feature_vector.append(get_avg_betweenness_centrality(networkx_graph))
 
     # 13 NUMBER OF LOUVAIN COMMUNITIES
-    feature_vector.append(len(nx_comm.louvain_communities(networkx_graph)))
+    #feature_vector.append(len(nx_comm.louvain_communities(networkx_graph)))
 
     return entropy_feature_vector, feature_vector
