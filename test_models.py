@@ -34,6 +34,8 @@ from sklearn import svm
 from src.feature_vectors import create_feature_vector
 from src import adapter
 
+np.random.seed(13)
+
 def get_ply_files(folder):
     files = list(filter(lambda file: file.split('.')[-1]=='ply', os.listdir(folder)))
     files = list(map(lambda file: os.path.join(folder, file),files))
