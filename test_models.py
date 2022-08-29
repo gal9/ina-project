@@ -149,7 +149,7 @@ def accuracy_scores(feature_vectors, entropy_feature_vectors, labels):
             final_fvs.append(entropy_fv[homology_idx])
 
         clf = svm.SVC(kernel='linear', C=1, random_state=42)
-        scores = cross_val_score(clf, final_fvs, labels, cv=10)
+        scores = cross_val_score(clf, final_fvs, labels, cv=10, scoring="roc_auc")
         y_pred = cross_val_predict(clf, final_fvs, labels, cv=10)
         conf_mat = confusion_matrix(labels, y_pred)
         best_scores.append((scores.mean(), "h"+str(homology_idx+1), conf_mat))
@@ -164,7 +164,7 @@ def accuracy_scores(feature_vectors, entropy_feature_vectors, labels):
                     extracted_fv += [feature_vectors[fv_idx][i] for i in combination]
                     final_fvs.append(extracted_fv)
 
-                scores = cross_val_score(clf, final_fvs, labels, cv=10)
+                scores = cross_val_score(clf, final_fvs, labels, cv=10, scoring="roc_auc")
                 y_pred = cross_val_predict(clf, final_fvs, labels, cv=10)
                 conf_mat = confusion_matrix(labels, y_pred)
                 best_scores.append((scores.mean(), ''.join([str(x)+" " for x in combination]) + "h" + str(homology_idx+1), conf_mat))
@@ -181,7 +181,7 @@ def accuracy_scores(feature_vectors, entropy_feature_vectors, labels):
                 extracted_fv = [fv[i] for i in combination]
                 final_fvs.append(extracted_fv)
 
-            scores = cross_val_score(clf, final_fvs, labels, cv=10)
+            scores = cross_val_score(clf, final_fvs, labels, cv=10, scoring="roc_auc")
             y_pred = cross_val_predict(clf, final_fvs, labels, cv=10)
             conf_mat = confusion_matrix(labels, y_pred)
             best_scores_2.append((scores.mean(), ''.join([str(x)+" " for x in combination]), conf_mat))
